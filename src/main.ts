@@ -54,7 +54,13 @@ app.innerHTML = `
     </label>
   </div>
   <div class="map-controls">
-    <span>Map:</span>
+    <label>
+      Width: <input type="number" id="grid-width" value="30" min="5" max="100">
+    </label>
+    <label>
+      Height: <input type="number" id="grid-height" value="30" min="5" max="100">
+    </label>
+    <button id="resize-btn">Resize</button>
     <select id="map-type">
       <option value="random">Random (Density)</option>
       <option value="maze">Maze (Recursive Division)</option>
@@ -76,7 +82,7 @@ app.innerHTML = `
 `
 
 const canvas = document.querySelector<HTMLCanvasElement>('#grid-canvas')!
-const grid = new Grid(canvas, 30, 30)
+let grid = new Grid(canvas, 30, 30)
 grid.render()
 
 const instructions = document.querySelector<HTMLParagraphElement>('#instructions')!
@@ -90,6 +96,9 @@ const mapTypeSelect = document.querySelector<HTMLSelectElement>('#map-type')!
 const densitySlider = document.querySelector<HTMLInputElement>('#density-slider')!
 const densityValue = document.querySelector<HTMLSpanElement>('#density-value')!
 const generateBtn = document.querySelector<HTMLButtonElement>('#generate-btn')!
+const widthInput = document.querySelector<HTMLInputElement>('#grid-width')!
+const heightInput = document.querySelector<HTMLInputElement>('#grid-height')!
+const resizeBtn = document.querySelector<HTMLButtonElement>('#resize-btn')!
 
 const dashboard = new Dashboard('metrics')
 
@@ -110,6 +119,22 @@ generateBtn.addEventListener('click', () => {
   } else if (mapType === 'connected') {
     generateWithConnectivity(grid, density)
   }
+})
+
+resizeBtn.addEventListener('click', () => {
+  const width = parseInt(widthInput.value)
+  const height = parseInt(heightInput.value)
+
+  if (width < 5 || width > 100 || height < 5 || height > 100) {
+    alert('Width and height must be between 5 and 100')
+    return
+  }
+
+  grid = new Grid(canvas, width, height)
+  grid.render()
+  clickCount = 0
+  instructions.textContent = 'Click a cell to place START point'
+  runBtn.disabled = true
 })
 
 let clickCount = 0
