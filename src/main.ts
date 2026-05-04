@@ -1,6 +1,7 @@
 import './style.css'
 import { Grid } from './grid'
 import { bfs, bfsGenerator, AlgorithmResult } from './algorithms/bfs'
+import { Dashboard } from './dashboard'
 
 const app = document.querySelector<HTMLDivElement>('#app')!
 
@@ -38,9 +39,11 @@ const instructions = document.querySelector<HTMLParagraphElement>('#instructions
 const runBtn = document.querySelector<HTMLButtonElement>('#run-btn')!
 const clearGridBtn = document.querySelector<HTMLButtonElement>('#clear-grid')!
 const clearPathBtn = document.querySelector<HTMLButtonElement>('#clear-path')!
-const metricsDiv = document.querySelector<HTMLDivElement>('#metrics')!
 const speedSlider = document.querySelector<HTMLInputElement>('#speed-slider')!
 const modeInputs = document.querySelectorAll<HTMLInputElement>('input[name="mode"]')
+const algoSelect = document.querySelector<HTMLSelectElement>('#algo-select')!
+
+const dashboard = new Dashboard('metrics')
 
 let clickCount = 0
 
@@ -63,11 +66,12 @@ runBtn.addEventListener('click', () => {
 
   const mode = Array.from(modeInputs).find(r => r.checked)!.value
   const speed = 101 - parseInt(speedSlider.value)
+  const algorithm = algoSelect.value
 
   if (mode === 'animated') {
-    runAnimated(speed)
+    runAnimated(speed, algorithm)
   } else {
-    runInstant()
+    runInstant(algorithm)
   }
 })
 
@@ -76,46 +80,40 @@ clearGridBtn.addEventListener('click', () => {
   clickCount = 0
   instructions.textContent = 'Click a cell to place START point'
   runBtn.disabled = true
-  metricsDiv.innerHTML = ''
 })
 
 clearPathBtn.addEventListener('click', () => {
   grid.clearPath()
-  metricsDiv.innerHTML = ''
 })
 
-function runInstant(): void {
+function runInstant(algorithm: string): void {
   grid.clearPath()
   const result = bfs(grid)
-  displayMetrics(result)
+  dashboard.addResult(algorithm.toUpperCase(), result)
   drawPath(result.path)
   runBtn.disabled = false
   isRunning = false
 }
 
-function runAnimated(speed: number): void {
+function runAnimated(speed: number, algorithm: string): void {
   grid.clearPath()
 
   const generator = bfsGenerator(grid)
   let result: AlgorithmResult | undefined
-  let visitedCells: { x: number; y: number }[] = []
-  let pathCells: { x: number; y: number }[] = []
 
   function step() {
     const next = generator.next()
     if (next.done) {
       result = next.value
+      dashboard.addResult(algorithm.toUpperCase(), result!)
       grid.clearPath()
       drawPath(result!.path)
-      displayMetrics(result!)
       runBtn.disabled = false
       isRunning = false
       return
     }
 
-    visitedCells = next.value.visited
-    pathCells = next.value.path
-    renderWithOverlay(visitedCells, pathCells)
+    renderWithOverlay(next.value.visited, next.value.path)
     setTimeout(step, speed)
   }
 
@@ -139,17 +137,6 @@ function renderWithOverlay(visited: { x: number; y: number }[], path: { x: numbe
       ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize)
     }
   }
-}
-
-function displayMetrics(result: AlgorithmResult): void {
-  metricsDiv.innerHTML = `
-    <h3>Results</h3>
-    <p>Execution Time: ${result.executionTime.toFixed(2)} ms</p>
-    <p>Nodes Visited: ${result.nodesVisited}</p>
-    <p>Path Length: ${result.pathLength}</p>
-    <p>Memory Estimate: ${result.memoryEstimate}</p>
-    <p>Path Found: ${result.found ? 'Yes' : 'No'}</p>
-  `
 }
 
 function drawPath(path: { x: number; y: number }[]): void {
