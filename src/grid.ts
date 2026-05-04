@@ -39,9 +39,11 @@ export class Grid {
     this.canvas.addEventListener('mousedown', this.handleMouseDown.bind(this))
     this.canvas.addEventListener('mousemove', this.handleMouseMove.bind(this))
     this.canvas.addEventListener('mouseup', this.handleMouseUp.bind(this))
+    this.canvas.addEventListener('contextmenu', (e) => e.preventDefault())
   }
 
   private isDrawing = false
+  private isErasing = false
 
   private handleClick(event: MouseEvent): void {
     const { x, y } = this.getCellFromEvent(event)
@@ -57,14 +59,23 @@ export class Grid {
     const { x, y } = this.getCellFromEvent(event)
     if (this.startPos && this.endPos) {
       this.isDrawing = true
-      this.setWall(x, y)
+      this.isErasing = event.button === 2
+      if (this.isErasing) {
+        this.removeWall(x, y)
+      } else {
+        this.addWall(x, y)
+      }
     }
   }
 
   private handleMouseMove(event: MouseEvent): void {
     if (this.isDrawing) {
       const { x, y } = this.getCellFromEvent(event)
-      this.setWall(x, y)
+      if (this.isErasing) {
+        this.removeWall(x, y)
+      } else {
+        this.addWall(x, y)
+      }
     }
   }
 
@@ -97,17 +108,27 @@ export class Grid {
     this.render()
   }
 
-  private setWall(x: number, y: number): void {
+  private addWall(x: number, y: number): void {
     if (this.isValidCell(x, y)) {
       const cell = this.cells[x][y]
-      if (cell.type !== 'start' && cell.type !== 'end') {
-        cell.type = cell.type === 'wall' ? 'empty' : 'wall'
+      if (cell.type !== 'start' && cell.type !== 'end' && cell.type !== 'wall') {
+        cell.type = 'wall'
         this.render()
       }
     }
   }
 
-  private isValidCell(x: number, y: number): boolean {
+  private removeWall(x: number, y: number): void {
+    if (this.isValidCell(x, y)) {
+      const cell = this.cells[x][y]
+      if (cell.type === 'wall') {
+        cell.type = 'empty'
+        this.render()
+      }
+    }
+  }
+
+  isValidCell(x: number, y: number): boolean {
     return x >= 0 && x < this.width && y >= 0 && y < this.height
   }
 
