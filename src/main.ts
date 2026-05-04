@@ -1,7 +1,28 @@
 import './style.css'
 import { Grid } from './grid'
 import { bfs, bfsGenerator, AlgorithmResult } from './algorithms/bfs'
+import { dfs, dfsGenerator } from './algorithms/dfs'
+import { dijkstra, dijkstraGenerator } from './algorithms/dijkstra'
+import { aStar, aStarGenerator } from './algorithms/astar'
+import { greedyBestFirst, greedyBestFirstGenerator } from './algorithms/greedy'
 import { Dashboard } from './dashboard'
+
+type AlgorithmFn = (grid: Grid) => AlgorithmResult
+type AlgorithmGenerator = (grid: Grid) => Generator<any, AlgorithmResult, unknown>
+
+interface Algorithm {
+  name: string
+  run: AlgorithmFn
+  generator: AlgorithmGenerator
+}
+
+const algorithms: Record<string, Algorithm> = {
+  bfs: { name: 'BFS', run: bfs, generator: bfsGenerator },
+  dfs: { name: 'DFS', run: dfs, generator: dfsGenerator },
+  dijkstra: { name: 'Dijkstra', run: dijkstra, generator: dijkstraGenerator },
+  astar: { name: 'A*', run: aStar, generator: aStarGenerator },
+  greedy: { name: 'Greedy', run: greedyBestFirst, generator: greedyBestFirstGenerator }
+}
 
 const app = document.querySelector<HTMLDivElement>('#app')!
 
@@ -11,6 +32,10 @@ app.innerHTML = `
   <div class="controls">
     <select id="algo-select">
       <option value="bfs">BFS</option>
+      <option value="dfs">DFS</option>
+      <option value="dijkstra">Dijkstra</option>
+      <option value="astar">A*</option>
+      <option value="greedy">Greedy Best-First</option>
     </select>
     <button id="run-btn" disabled>Run</button>
     <button id="clear-grid">Clear Grid</button>
@@ -27,8 +52,12 @@ app.innerHTML = `
       Speed: <input type="range" id="speed-slider" min="1" max="100" value="50">
     </label>
   </div>
-  <canvas id="grid-canvas"></canvas>
-  <div id="metrics"></div>
+  <div class="main-container">
+    <div class="canvas-container">
+      <canvas id="grid-canvas"></canvas>
+    </div>
+    <div id="metrics"></div>
+  </div>
 `
 
 const canvas = document.querySelector<HTMLCanvasElement>('#grid-canvas')!
@@ -66,7 +95,8 @@ runBtn.addEventListener('click', () => {
 
   const mode = Array.from(modeInputs).find(r => r.checked)!.value
   const speed = 101 - parseInt(speedSlider.value)
-  const algorithm = algoSelect.value
+  const algorithmKey = algoSelect.value
+  const algorithm = algorithms[algorithmKey]
 
   if (mode === 'animated') {
     runAnimated(speed, algorithm)
@@ -86,26 +116,26 @@ clearPathBtn.addEventListener('click', () => {
   grid.clearPath()
 })
 
-function runInstant(algorithm: string): void {
+function runInstant(algorithm: Algorithm): void {
   grid.clearPath()
-  const result = bfs(grid)
-  dashboard.addResult(algorithm.toUpperCase(), result)
+  const result = algorithm.run(grid)
+  dashboard.addResult(algorithm.name, result)
   drawPath(result.path)
   runBtn.disabled = false
   isRunning = false
 }
 
-function runAnimated(speed: number, algorithm: string): void {
+function runAnimated(speed: number, algorithm: Algorithm): void {
   grid.clearPath()
 
-  const generator = bfsGenerator(grid)
+  const generator = algorithm.generator(grid)
   let result: AlgorithmResult | undefined
 
   function step() {
     const next = generator.next()
     if (next.done) {
       result = next.value
-      dashboard.addResult(algorithm.toUpperCase(), result!)
+      dashboard.addResult(algorithm.name, result!)
       grid.clearPath()
       drawPath(result!.path)
       runBtn.disabled = false
