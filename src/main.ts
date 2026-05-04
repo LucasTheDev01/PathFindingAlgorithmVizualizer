@@ -6,6 +6,7 @@ import { dijkstra, dijkstraGenerator } from './algorithms/dijkstra'
 import { aStar, aStarGenerator } from './algorithms/astar'
 import { greedyBestFirst, greedyBestFirstGenerator } from './algorithms/greedy'
 import { Dashboard } from './dashboard'
+import { generateRandomMap, generateMaze, generateClusteredMap, generateWithConnectivity } from './mapGenerator'
 
 type AlgorithmFn = (grid: Grid) => AlgorithmResult
 type AlgorithmGenerator = (grid: Grid) => Generator<any, AlgorithmResult, unknown>
@@ -52,6 +53,20 @@ app.innerHTML = `
       Speed: <input type="range" id="speed-slider" min="1" max="100" value="50">
     </label>
   </div>
+  <div class="map-controls">
+    <span>Map:</span>
+    <select id="map-type">
+      <option value="random">Random (Density)</option>
+      <option value="maze">Maze (Recursive Division)</option>
+      <option value="clustered">Clustered (Noise)</option>
+      <option value="connected">With Connectivity</option>
+    </select>
+    <label>
+      Density: <input type="range" id="density-slider" min="0" max="100" value="30">
+      <span id="density-value">30%</span>
+    </label>
+    <button id="generate-btn">Generate</button>
+  </div>
   <div class="main-container">
     <div class="canvas-container">
       <canvas id="grid-canvas"></canvas>
@@ -71,8 +86,31 @@ const clearPathBtn = document.querySelector<HTMLButtonElement>('#clear-path')!
 const speedSlider = document.querySelector<HTMLInputElement>('#speed-slider')!
 const modeInputs = document.querySelectorAll<HTMLInputElement>('input[name="mode"]')
 const algoSelect = document.querySelector<HTMLSelectElement>('#algo-select')!
+const mapTypeSelect = document.querySelector<HTMLSelectElement>('#map-type')!
+const densitySlider = document.querySelector<HTMLInputElement>('#density-slider')!
+const densityValue = document.querySelector<HTMLSpanElement>('#density-value')!
+const generateBtn = document.querySelector<HTMLButtonElement>('#generate-btn')!
 
 const dashboard = new Dashboard('metrics')
+
+densitySlider.addEventListener('input', () => {
+  densityValue.textContent = `${densitySlider.value}%`
+})
+
+generateBtn.addEventListener('click', () => {
+  const mapType = mapTypeSelect.value
+  const density = parseInt(densitySlider.value)
+
+  if (mapType === 'random') {
+    generateRandomMap(grid, { density })
+  } else if (mapType === 'maze') {
+    generateMaze(grid)
+  } else if (mapType === 'clustered') {
+    generateClusteredMap(grid, density)
+  } else if (mapType === 'connected') {
+    generateWithConnectivity(grid, density)
+  }
+})
 
 let clickCount = 0
 

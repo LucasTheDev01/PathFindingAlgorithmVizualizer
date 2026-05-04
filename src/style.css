@@ -53,6 +53,15 @@ h1 {
   margin-bottom: 10px;
 }
 
+.map-controls {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 10px;
+  flex-wrap: wrap;
+}
+
 #grid-canvas {
   display: block;
   margin: 0 auto;
@@ -63,6 +72,10 @@ h1 {
   width: 100%;
   box-sizing: border-box;
   height: 600px;
+}
+
+.table-wrapper {
+  height: calc(600px - 50px);
   overflow-y: auto;
 }
 

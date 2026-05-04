@@ -71,23 +71,25 @@ export class Dashboard {
           <h3>Metrics Dashboard</h3>
           <button id="clear-history">Clear History</button>
         </div>
-        <table>
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Algorithm</th>
-              <th>Time</th>
-              <th>Exec Time</th>
-              <th>Nodes</th>
-              <th>Path</th>
-              <th>Memory</th>
-              <th>Found</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${rows}
-          </tbody>
-        </table>
+        <div class="table-wrapper">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>Algorithm</th>
+                <th>Time</th>
+                <th>Exec Time</th>
+                <th>Nodes</th>
+                <th>Path</th>
+                <th>Memory</th>
+                <th>Found</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${rows}
+            </tbody>
+          </table>
+        </div>
       </div>
     `
 
