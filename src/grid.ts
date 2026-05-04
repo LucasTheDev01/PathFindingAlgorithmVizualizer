@@ -39,6 +39,7 @@ export class Grid {
     this.canvas.addEventListener('mousedown', this.handleMouseDown.bind(this))
     this.canvas.addEventListener('mousemove', this.handleMouseMove.bind(this))
     this.canvas.addEventListener('mouseup', this.handleMouseUp.bind(this))
+    this.canvas.addEventListener('mouseleave', this.handleMouseUp.bind(this))
     this.canvas.addEventListener('contextmenu', (e) => e.preventDefault())
   }
 
@@ -172,5 +173,28 @@ export class Grid {
 
   getEndPos(): { x: number; y: number } | null {
     return this.endPos
+  }
+
+  reset(): void {
+    for (let x = 0; x < this.width; x++) {
+      for (let y = 0; y < this.height; y++) {
+        this.cells[x][y] = { x, y, type: 'empty' }
+      }
+    }
+    this.startPos = null
+    this.endPos = null
+    this.render()
+  }
+
+  clearPath(): void {
+    for (let x = 0; x < this.width; x++) {
+      for (let y = 0; y < this.height; y++) {
+        const cell = this.cells[x][y]
+        if (cell.type === 'visited' || cell.type === 'path') {
+          cell.type = 'empty'
+        }
+      }
+    }
+    this.render()
   }
 }
