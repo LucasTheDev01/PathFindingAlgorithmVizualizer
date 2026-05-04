@@ -6,9 +6,13 @@ export interface Cell {
   type: CellType
 }
 
+export type PlacementState = 'place-start' | 'place-end' | 'draw-walls' | 'idle'
+
 export class Grid {
   private cells: Cell[][]
   private cellSize: number
+  private startPos: { x: number; y: number } | null = null
+  private endPos: { x: number; y: number } | null = null
 
   constructor(
     private canvas: HTMLCanvasElement,
@@ -26,6 +30,85 @@ export class Grid {
         this.cells[x][y] = { x, y, type: 'empty' }
       }
     }
+
+    this.setupEventListeners()
+  }
+
+  private setupEventListeners(): void {
+    this.canvas.addEventListener('click', this.handleClick.bind(this))
+    this.canvas.addEventListener('mousedown', this.handleMouseDown.bind(this))
+    this.canvas.addEventListener('mousemove', this.handleMouseMove.bind(this))
+    this.canvas.addEventListener('mouseup', this.handleMouseUp.bind(this))
+  }
+
+  private isDrawing = false
+
+  private handleClick(event: MouseEvent): void {
+    const { x, y } = this.getCellFromEvent(event)
+
+    if (!this.startPos) {
+      this.setStart(x, y)
+    } else if (!this.endPos) {
+      this.setEnd(x, y)
+    }
+  }
+
+  private handleMouseDown(event: MouseEvent): void {
+    const { x, y } = this.getCellFromEvent(event)
+    if (this.startPos && this.endPos) {
+      this.isDrawing = true
+      this.setWall(x, y)
+    }
+  }
+
+  private handleMouseMove(event: MouseEvent): void {
+    if (this.isDrawing) {
+      const { x, y } = this.getCellFromEvent(event)
+      this.setWall(x, y)
+    }
+  }
+
+  private handleMouseUp(): void {
+    this.isDrawing = false
+  }
+
+  private getCellFromEvent(event: MouseEvent): { x: number; y: number } {
+    const rect = this.canvas.getBoundingClientRect()
+    const x = Math.floor((event.clientX - rect.left) / this.cellSize)
+    const y = Math.floor((event.clientY - rect.top) / this.cellSize)
+    return { x, y }
+  }
+
+  private setStart(x: number, y: number): void {
+    if (this.startPos) {
+      this.cells[this.startPos.x][this.startPos.y].type = 'empty'
+    }
+    this.startPos = { x, y }
+    this.cells[x][y].type = 'start'
+    this.render()
+  }
+
+  private setEnd(x: number, y: number): void {
+    if (this.endPos) {
+      this.cells[this.endPos.x][this.endPos.y].type = 'empty'
+    }
+    this.endPos = { x, y }
+    this.cells[x][y].type = 'end'
+    this.render()
+  }
+
+  private setWall(x: number, y: number): void {
+    if (this.isValidCell(x, y)) {
+      const cell = this.cells[x][y]
+      if (cell.type !== 'start' && cell.type !== 'end') {
+        cell.type = cell.type === 'wall' ? 'empty' : 'wall'
+        this.render()
+      }
+    }
+  }
+
+  private isValidCell(x: number, y: number): boolean {
+    return x >= 0 && x < this.width && y >= 0 && y < this.height
   }
 
   render(): void {
@@ -52,5 +135,21 @@ export class Grid {
       case 'visited': return '#88f'
       case 'path': return '#f88'
     }
+  }
+
+  getCell(x: number, y: number): Cell | undefined {
+    return this.cells[x]?.[y]
+  }
+
+  isWall(x: number, y: number): boolean {
+    return this.cells[x]?.[y]?.type === 'wall'
+  }
+
+  getStartPos(): { x: number; y: number } | null {
+    return this.startPos
+  }
+
+  getEndPos(): { x: number; y: number } | null {
+    return this.endPos
   }
 }
