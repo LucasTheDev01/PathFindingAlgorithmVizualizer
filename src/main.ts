@@ -39,8 +39,8 @@ app.innerHTML = `
       <option value="greedy">Greedy Best-First</option>
     </select>
     <button id="run-btn" disabled>Run</button>
-    <button id="clear-grid">Clear Grid</button>
-    <button id="clear-path">Clear Path</button>
+    <button id="clear-grid" class="secondary">Clear Grid</button>
+    <button id="clear-path" class="secondary">Clear Path</button>
   </div>
   <div class="mode-controls">
     <label>
@@ -76,6 +76,13 @@ app.innerHTML = `
   <div class="main-container">
     <div class="canvas-container">
       <canvas id="grid-canvas"></canvas>
+      <div class="legend">
+        <div class="legend-item"><div class="legend-color legend-start"></div> Start</div>
+        <div class="legend-item"><div class="legend-color legend-end"></div> End</div>
+        <div class="legend-item"><div class="legend-color legend-wall"></div> Wall</div>
+        <div class="legend-item"><div class="legend-color legend-visited"></div> Visited</div>
+        <div class="legend-item"><div class="legend-color legend-path"></div> Path</div>
+      </div>
     </div>
     <div id="metrics"></div>
   </div>
